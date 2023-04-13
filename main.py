@@ -37,12 +37,12 @@ PATH = ("","/usr/local/bin/geckodriver")[sys.platform.startswith("linux")]
 
 
 opt = Options()
-#opt.add_argument("--headless")
+opt.add_argument("--headless")
 opt.add_argument("--disable-blink-features=AutomationControlled")
 
 
 driver = webdriver.Firefox(options=opt)
-#driver.set_window_size(1366,6000)
+driver.set_window_size(1366,6000)
 os.system('cls||clear')
 
 
