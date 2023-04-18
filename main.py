@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as Exp_c
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from getpass import getpass
 import os
@@ -27,6 +28,7 @@ if("@" not in email):
 senha = getpass("Digite a senha:\n")
 os.system('cls||clear')
 print("Aguarde!")
+
 
 
 
@@ -120,32 +122,52 @@ def list_members():
             WebDriverWait(driver, 10).until(Exp_c.visibility_of_element_located((By.CLASS_NAME, "userPopoutOuter-1OHwPL")))
             tag = driver.find_elements(By.CLASS_NAME, "discrimBase-v65kTs")[0].text
             name = driver.find_elements(By.CLASS_NAME, "username-3JLfHz")[0].text
-            print(i)
-
-            print(tag)
             dict_tags.update({i:[name, tag]})
 
 
         return dict_tags    
 
 def send_msg(id):
+    act = ActionChains(driver)
     try:
-        act = ActionChains(driver)
+        time.sleep(3)
+
+
         driver.find_elements(By.CLASS_NAME, "wrapper-3kah-n")[0].click()
         driver.find_elements(By.CLASS_NAME, "searchBarComponent-3N7dCG")[0].click()
         driver.find_elements(By.CLASS_NAME, "input-3r5zZY")[0].send_keys(id)
-
-        driver.find_elements(By.CLASS_NAME, "result-u66Ywh")[0].click()
-        time.sleep(2)
-        driver.find_elements(By.CLASS_NAME, "slateTextArea-27tjG0")[1].click()
-
         
+        
+
+        WebDriverWait(driver, 10).until(Exp_c.visibility_of_any_elements_located((By.CLASS_NAME, "result-u66Ywh")))
+        driver.find_elements(By.CLASS_NAME, "result-u66Ywh")[0].click()
+
+
+        time.sleep(3)
+
+
         act.key_down(Keys.SUBTRACT).key_up(Keys.SUBTRACT).send_keys(" test").perform()
 
         act.key_down(Keys.ENTER).key_up(Keys.ENTER).perform()
+        return True
+    except (TimeoutException, NoSuchElementException):
+        #driver.find_elements(By.CLASS_NAME,"backdrop-2ByYRN withLayer-2VVmpp")[0].click
+        driver.execute_script("document.getElementsByClassName('backdrop-2ByYRN withLayer-2VVmpp')[0].click()")
+        return False
+def spam_msg():
+    with open("tags.txt","r") as f:
+        lines = f.readlines()
+        for line in lines:
+            
+            if send_msg(line[1:]):
+                print(f"Msg enviada para ID:{line}")
+                time.sleep(5)
+            else:
+                print(f"Não foi possivel enviar para:{line}")
+                f = open("not_sent.txt","a+")
+                f.write(line)
+        
 
-    except:
-        pass
 
 
 if __name__ == "__main__":
@@ -194,7 +216,7 @@ if __name__ == "__main__":
     while True:
         resp = input("""----Opções:----
 Entrar em servidor(ES)    Lista de servidores(LS)
-Enviar mensagem(MS)
+Enviar mensagem(MS)       Spam(S)
                   
                   \n\n\nSair(Q)\n"""
                 ).upper()
@@ -202,6 +224,8 @@ Enviar mensagem(MS)
             os.system('cls||clear')               
 
             sys.exit(0)
+        elif resp == "S":
+            spam_msg()
         elif resp=="MS":
             id_ins = input("Digite o id: ")
             send_msg(id_ins)
@@ -237,7 +261,7 @@ Enviar mensagem(MS)
                     if inps.upper() == "Y":
                         ar = open("tags.txt","a+")
                         for key in ml:
-                            ar.write(f'{key}, {ml[key][0]}, {ml[key][1]}\n')
+                            ar.write(f'{ml[key][0]}{ml[key][1]}\n')
                         ar.close()
                         print("Tags salvas")
                     for key in ml:
